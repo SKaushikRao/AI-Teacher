@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Teacher - File Summarizer</title>
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=KMmSx6ej"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: auto;
+        }
+        input[type="file"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #summary {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: left;
+        }
+        /* Loading spinner styles */
+        .loading {
+            display: none;
+            margin: 20px auto;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📚 AI Teacher - File Summarizer</h1>
+    
+    <div class="container">
+        <form id="uploadForm">
+            <input type="file" id="fileInput" accept=".pdf,.pptx">
+            <button type="submit">Upload & Summarize</button>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading"></div>
+
+        <h3>Summary:</h3>
+        <p id="summary">Upload a file to generate a summary.</p>
+
+        <button onclick="readSummary()">🔊 Read Summary</button>
+    </div>
+
+    <script>
+        document.getElementById("uploadForm").onsubmit = async function(event) {
+            event.preventDefault();
+            let formData = new FormData();
+            let fileInput = document.getElementById("fileInput");
+            let loadingSpinner = document.getElementById("loadingSpinner");
+            let summaryText = document.getElementById("summary");
+            
+            if (fileInput.files.length === 0) {
+                alert("Please select a file.");
+                return;
+            }
+            
+            formData.append("file", fileInput.files[0]);
+
+            // Show loading spinner and clear previous summary
+            loadingSpinner.style.display = "block";
+            summaryText.innerText = "Processing... Please wait.";
+
+            let response = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            let result = await response.json();
+
+            // Hide loading spinner
+            loadingSpinner.style.display = "none";
+
+            if (response.ok) {
+                summaryText.innerText = result.explained_text;
+            } else {
+                alert("Error: " + result.error);
+                summaryText.innerText = "Error in processing.";
+            }
+        };
+
+        function readSummary() {
+            let text = document.getElementById("summary").innerText;
+            if (text && text !== "Upload a file to generate a summary.") {
+                responsiveVoice.speak(text, "UK English Female", { rate: 1 });
+            } else {
+                alert("No summary to read.");
+            }
+        }
+    </script>
+
+</body>
+</html>
